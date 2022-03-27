@@ -27,7 +27,7 @@ export const options = {
   responsive: true,
   plugins: {
     legend: {
-      position: "top" 
+      position: "top"
     },
     title: {
       display: true,
@@ -69,9 +69,10 @@ export default function Home() {
     page: 0,
     pageSize: 100,
   });
+  const [chi, setChi] = useState([]);
 
   const calculate = async () => {
-    const {size, intervals} = await fetcher(`/api/rnd?modo=${params.modo}&n=${params.n}&aditiva=${params.aditiva}&multiplicativa=${params.multiplicativa}&modulo=${params.modulo}&semilla=${params.semilla}`);
+    const { size, intervals } = await fetcher(`/api/rnd?modo=${params.modo}&n=${params.n}&aditiva=${params.aditiva}&multiplicativa=${params.multiplicativa}&modulo=${params.modulo}&semilla=${params.semilla}`);
     setRowsCount(size);
     setIntervals(intervals);
     getData();
@@ -85,7 +86,7 @@ export default function Home() {
   }
 
   const handleParamsChange = (key, value) => {
-    setParams(prev => ({...prev, [key]: value}))
+    setParams(prev => ({ ...prev, [key]: value }))
   }
 
   const handleModeChange = (e) => {
@@ -95,6 +96,24 @@ export default function Home() {
   useEffect(() => {
     getData();
   }, [rowsState, rowsCount])
+
+  useEffect(() => {
+    const res = [];
+    let acu = 0;
+    intervals.forEach(interval => {
+      const item = {
+        interval: `${interval.from} - ${interval.to}`,
+        fo: interval.items.length,
+        fe: params.n / intervals.length
+      }
+      const c = Math.pow((item.fo - item.fe) / item.fe, 2).toFixed(4);
+      item.c = Number(c);
+      acu += item.c;
+      item.acu = acu;
+      res.push(item);
+    })
+    setChi(res);
+  }, [intervals])
 
 
   return (
@@ -119,39 +138,39 @@ export default function Home() {
           </FormControl>
         </Box>
         <InputField name="n" label="n" onChange={handleParamsChange} />
-        {params.modo !== "nativo" && <InputField name="semilla" label="X0" onChange={handleParamsChange}  />}
-        {params.modo !== "nativo" && <InputField name="multiplicativa" label="a" onChange={handleParamsChange}  />}
-        {params.modo === "lineal" && <InputField name="aditiva" label="c" onChange={handleParamsChange}  />}
-        {params.modo !== "nativo" && <InputField name="modulo" label="m" onChange={handleParamsChange}  />}
+        {params.modo !== "nativo" && <InputField name="semilla" label="X0" onChange={handleParamsChange} />}
+        {params.modo !== "nativo" && <InputField name="multiplicativa" label="a" onChange={handleParamsChange} />}
+        {params.modo === "lineal" && <InputField name="aditiva" label="c" onChange={handleParamsChange} />}
+        {params.modo !== "nativo" && <InputField name="modulo" label="m" onChange={handleParamsChange} />}
         <Button onClick={calculate}>
           Calcular
         </Button>
       </Grid>
       <Grid item xs={5}>
         <Box sx={{
-        height: '500px'
-      }} >
-        <DataGrid
-          rows={data || []}
-          columns={columns}
-          loading={loading}
-          paginationMode="server"
-          rowCount={rowsCount}
-          pageSize={10}
-          rowsPerPageOptions={[5, 10, 50, 100]}
-          getRowId={(row) => row.i}
-          {...rowsState}
-          onPageChange={(page) => setRowsState((prev) => ({ ...prev, page }))}
-          onPageSizeChange={(pageSize) =>
-            setRowsState((prev) => ({ ...prev, pageSize }))
-          }
-        />
+          height: '500px'
+        }} >
+          <DataGrid
+            rows={data || []}
+            columns={columns}
+            loading={loading}
+            paginationMode="server"
+            rowCount={rowsCount}
+            pageSize={10}
+            rowsPerPageOptions={[5, 10, 50, 100]}
+            getRowId={(row) => row.i}
+            {...rowsState}
+            onPageChange={(page) => setRowsState((prev) => ({ ...prev, page }))}
+            onPageSizeChange={(pageSize) =>
+              setRowsState((prev) => ({ ...prev, pageSize }))
+            }
+          />
         </Box>
       </Grid>
       <Grid item xs>
-         <Bar options={options} data={{
-           labels: intervals.map(interval => `${interval.from} - ${interval.to}`),
-           datasets: [
+        <Bar options={options} data={{
+          labels: intervals.map(interval => `${interval.from} - ${interval.to}`),
+          datasets: [
             {
               label: "fo",
               backgroundColor: "rgba(255, 99, 132, 0.5)",
@@ -162,8 +181,39 @@ export default function Home() {
               backgroundColor: "rgba(53, 162, 235, 0.5)",
               data: intervals.map(() => params.n / intervals.length)
             }
-           ]
-         }} />
+          ]
+        }} />
+      </Grid>
+      <Grid item>
+        <Box sx={{
+          height: '500px'
+        }} >
+          <DataGrid
+            rows={chi || []}
+            columns={[{
+              field: 'interval',
+              headerName: "Intervalo"
+            }, {
+              field: 'fo',
+              headerName: 'fo'
+            },
+            {
+              field: 'fe',
+              headerName: 'fe'
+            },
+            {
+              field: 'c',
+              headerName: "C"
+            }, 
+            {
+              field: 'acu',
+              headerName: 'C (AC)'
+            }
+          ]}
+            loading={loading}
+            getRowId={(row) => row.interval}
+          />
+        </Box>
       </Grid>
     </Grid>
   )

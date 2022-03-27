@@ -9,7 +9,6 @@ const cors = Cors({
 
 const response = {
   serie: [],
-  freq: {},
   intervals: []
 };
 
@@ -35,12 +34,13 @@ const congruenciaLineal = ({
   modulo,
   n
 }) => {
-  const aux = (multiplicativa * semilla) + aditiva;
-  const next = aux % modulo;
-  const rnd = (next / (modulo - 1)).toFixed(4);
+  const axic = (multiplicativa * semilla) + aditiva;
+  const next = axic % modulo;
+  const rnd = (next / modulo).toFixed(4);
   return {
     rnd: Number(rnd),
-    next
+    next,
+    axic
   }
 }
 
@@ -49,12 +49,13 @@ const congruencialMultiplicativo = ({
   multiplicativa,
   modulo
 }) => {
-  const aux = (multiplicativa * semilla);
-  const next = aux % modulo;
-  const rnd = (next / (modulo - 1)).toFixed(4);
+  const axic = (multiplicativa * semilla);
+  const next = axic % modulo;
+  const rnd = (next / modulo).toFixed(4);
   return {
     rnd: Number(rnd),
-    next
+    next,
+    axic
   }
 }
 
@@ -74,7 +75,6 @@ const calcularIntervalos = (cant) => {
   response.intervals = [];
   for (let i = 0; i < cant; i++) {
     let from = response.intervals[i - 1]?.to || 0;
-    console.log({ from })
     response.intervals.push({
       from,
       to: Number((from + ancho).toFixed(4)),
@@ -87,7 +87,7 @@ const calcularIntervalos = (cant) => {
 const generar = ({ n, modo, multiplicativa, aditiva, modulo, semilla, intervalos = 5 }) => {
   let semillaInicial = Number(semilla);
   for (let i = 1; i <= n; i++) {
-    const { rnd, next } = MODOS[modo]({
+    const { rnd, next, axic } = MODOS[modo]({
       semilla: semillaInicial,
       modulo: Number(modulo),
       multiplicativa: Number(multiplicativa),
@@ -95,9 +95,10 @@ const generar = ({ n, modo, multiplicativa, aditiva, modulo, semilla, intervalos
     })
     response.serie.push({
       i,
+      axic,
+      next,
       rnd
     })
-    response.freq[rnd] = (response.freq[rnd] || 0) + 1
     semillaInicial = next;
     response.intervals.forEach(interval => {
       if(rnd >= interval.from && rnd < interval.to){
@@ -112,7 +113,6 @@ export default async function handler(req, res) {
   await runMiddleware(req, res, cors);
   const { n, modo, page, size, multiplicativa, aditiva, modulo, semilla, intervalos = 5 } = req.query;
   if (!page && !size) {
-    response.freq = {};
     response.serie = [];
     calcularIntervalos(Number(intervalos));
     generar({
@@ -130,3 +130,17 @@ export default async function handler(req, res) {
   return res.status(200).json(response.serie.slice(from, to))
 
 }
+
+
+/** TODO:
+ * Truncar o redondear
+ * Cant. intervalos
+ * a k g etc
+ * 2 formulas del multiplicativo
+ * rotular los ejes
+ * validaciones grales: vacios, entero positivo, hasta 1kkk (err)
+ * en congr. lineal c tiene q ser relativamente primo con m (warn)
+ * en congr. mult. impar y semilla tienen que ser primo (err)
+ * N >= 30 para poder hacer el chi (warn)
+ *      
+ */
