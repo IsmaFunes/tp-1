@@ -12,6 +12,12 @@ const response = {
   intervals: []
 };
 
+Number.prototype.toFixedNoRound = function (precision = 1){
+  const factor = Math.pow(10, precision);
+  return Math.floor(this * factor) / factor;
+}
+
+const fix = (number, round) => round ? Number(number.toFixed(4)) : number.toFixedNoRound(4)
 
 // Helper method to wait for a middleware to execute before continuing
 // And to throw an error when an error happens in a middleware
@@ -36,9 +42,9 @@ const congruenciaLineal = ({
 }) => {
   const axic = (multiplicativa * semilla) + aditiva;
   const next = axic % modulo;
-  const rnd = (next / modulo).toFixed(4);
+  const rnd = next / modulo
   return {
-    rnd: Number(rnd),
+    rnd,
     next,
     axic
   }
@@ -51,16 +57,16 @@ const congruencialMultiplicativo = ({
 }) => {
   const axic = (multiplicativa * semilla);
   const next = axic % modulo;
-  const rnd = (next / modulo).toFixed(4);
+  const rnd = (next / modulo)
   return {
-    rnd: Number(rnd),
+    rnd,
     next,
     axic
   }
 }
 
 const nativo = () => {
-  return { rnd: Number(Math.random().toFixed(4)) }
+  return { rnd: Math.random() }
 }
 
 
@@ -70,7 +76,7 @@ const MODOS = {
   nativo
 }
 
-const calcularIntervalos = (cant) => {
+const calcularIntervalos = (cant, round) => {
   const ancho = 1 / cant;
   response.intervals = [];
   for (let i = 0; i < cant; i++) {
@@ -84,20 +90,20 @@ const calcularIntervalos = (cant) => {
   }
 }
 
-const generar = ({ n, modo, multiplicativa, aditiva, modulo, semilla, intervalos = 5 }) => {
+const generar = ({ n, modo, multiplicativa, aditiva, modulo, semilla, intervalos = 5, round }) => {
   let semillaInicial = Number(semilla);
   for (let i = 1; i <= n; i++) {
     const { rnd, next, axic } = MODOS[modo]({
       semilla: semillaInicial,
       modulo: Number(modulo),
       multiplicativa: Number(multiplicativa),
-      aditiva: Number(aditiva),
-    })
+      aditiva: Number(aditiva)
+      })
     response.serie.push({
       i,
       axic,
       next,
-      rnd
+      rnd: fix(rnd, round)
     })
     semillaInicial = next;
     response.intervals.forEach(interval => {
@@ -111,12 +117,12 @@ const generar = ({ n, modo, multiplicativa, aditiva, modulo, semilla, intervalos
 
 export default async function handler(req, res) {
   await runMiddleware(req, res, cors);
-  const { n, modo, page, size, multiplicativa, aditiva, modulo, semilla, intervalos = 5 } = req.query;
+  const { n, modo, page, size, multiplicativa, aditiva, modulo, semilla, intervalos = 5, round = true } = req.query;
   if (!page && !size) {
     response.serie = [];
-    calcularIntervalos(Number(intervalos));
+    calcularIntervalos(Number(intervalos), round);
     generar({
-      n, modo, multiplicativa, aditiva, modulo, semilla
+      n, modo, multiplicativa, aditiva, modulo, semilla, round
     })
     return res.status(200).json({
       size: response.serie.length,
@@ -134,13 +140,5 @@ export default async function handler(req, res) {
 
 /** TODO:
  * Truncar o redondear
- * Cant. intervalos
- * a k g etc
  * 2 formulas del multiplicativo
- * rotular los ejes
- * validaciones grales: vacios, entero positivo, hasta 1kkk (err)
- * en congr. lineal c tiene q ser relativamente primo con m (warn)
- * en congr. mult. impar y semilla tienen que ser primo (err)
- * N >= 30 para poder hacer el chi (warn)
- *      
  */
