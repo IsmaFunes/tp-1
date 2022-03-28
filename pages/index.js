@@ -112,10 +112,19 @@ export default function Home() {
   const [chi, setChi] = useState([]);
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
+  const [useAlternativeMultiplicativa, setUseAlternative] = useState(false);
 
   useEffect(() => {
-    params.k && handleParamsChange('multiplicativa', (params.k * 4) + 1)
-  }, [params.k])
+    if (params.k) {
+      let value;
+      if (params.modo === "multiplicativo") {
+        value = params.k * 8 + (useAlternativeMultiplicativa ? 5 : 3)
+      } else {
+        value = (params.k * 4) + 1;
+      }
+      handleParamsChange('multiplicativa', value)
+    }
+  }, [params.k, params.modo, useAlternativeMultiplicativa])
 
   useEffect(() => {
     params.g && handleParamsChange('modulo', Math.pow(2, params.g))
@@ -302,6 +311,9 @@ export default function Home() {
               <FormGroup>
                 <FormControlLabel control={<Checkbox checked={round} onChange={(e) => setRound(e.target.checked)} />} label="Redondear decimales" />
               </FormGroup>
+              {params.modo === "multiplicativo" && <FormGroup>
+                <FormControlLabel control={<Checkbox checked={useAlternativeMultiplicativa} onChange={(e) => setUseAlternative(e.target.checked)} />} label="Usar 5 + 8k (por defecto usa 3 + 8k)" />
+              </FormGroup>}
             </Grid>
           </Grid>
 
@@ -312,9 +324,14 @@ export default function Home() {
           </LoadingButton>
         </Paper>
       </Grid>
-      <Grid item xs={5}>
+      <Grid item xs={5} marginTop={2}>
         <Grid container spacing={1} direction="row">
-          <Grid item xs>
+          <Grid item xs sx={{
+            textAlign: 'center'
+          }}>
+            <Typography variant="h5">
+              Tabla de valores
+            </Typography>
             <Box sx={{
               height: '500px'
             }} >
@@ -327,22 +344,44 @@ export default function Home() {
                 pageSize={10}
                 rowsPerPageOptions={[5, 10, 50, 100]}
                 getRowId={(row) => row.i}
-                disabl
+                disableColumnFilter
+                localeText={{
+                  noRowsLabel: "No hay datos",
+                  columnMenuFilter: "Filtrar",
+                  columnMenuHideColumn: 'Esconder',
+                  columnMenuShowColumns: 'Mostrar columnas',
+                }}
+                componentsProps={{
+                  pagination: {
+                    labelRowsPerPage: "Filas por página",
+                    labelDisplayedRows: ({ from, to, count, page }) => {
+                      return `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`;
+                    }
+                  }
+                }}
                 {...rowsState}
                 onPageChange={(page) => setRowsState((prev) => ({ ...prev, page }))}
+                
                 onPageSizeChange={(pageSize) =>
                   setRowsState((prev) => ({ ...prev, pageSize }))
                 }
               />
             </Box>
           </Grid>
-          <Grid item xs>
+          <Grid item xs sx={{
+            textAlign: 'center'
+          }}>
+            <Typography variant="h5">
+              Ji-Cuadrada
+            </Typography>
             <Box sx={{
               height: '500px'
             }} >
               <DataGrid
                 rows={chi || []}
                 loading={loading}
+                hideFooterPagination
+              
                 columns={[{
                   field: 'interval',
                   headerName: "Intervalo",
