@@ -1,7 +1,7 @@
 import fetcher from '../fetcher'
 import { useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Button, FormControl, Grid, InputLabel, MenuItem, Paper, Select, TextField, Typography } from '@mui/material';
+import { Checkbox, FormControl, FormControlLabel, FormGroup, Grid, InputLabel, MenuItem, Paper, Select, TextField, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import {
   Chart as ChartJS,
@@ -83,7 +83,7 @@ const InputField = ({
     mr: 3,
     mb: 3
   }} value={params[name]} type="number"
-  onChange={handleChange} {...rest} inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} />
+    onChange={handleChange} {...rest} inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} />
 }
 
 
@@ -100,6 +100,7 @@ export default function Home() {
     k: '',
     g: ''
   });
+  const [round, setRound] = useState(true);
   const [loading, setLoading] = useState(false);
   const [rowsCount, setRowsCount] = useState(0);
   const [data, setData] = useState([]);
@@ -113,7 +114,7 @@ export default function Home() {
   const [warnings, setWarnings] = useState([]);
 
   useEffect(() => {
-    params.k && handleParamsChange('multiplicativa', (params.k * 3) + 1)
+    params.k && handleParamsChange('multiplicativa', (params.k * 4) + 1)
   }, [params.k])
 
   useEffect(() => {
@@ -121,9 +122,9 @@ export default function Home() {
   }, [params.g])
 
   const validate = () => {
-    if(!params.n
+    if (!params.n
       || (params.modo !== "nativo" && (!params.modulo || !params.multiplicativa || !params.semilla))
-      || (params.modo === "lineal" && !params.aditiva)){
+      || (params.modo === "lineal" && !params.aditiva)) {
       addError("Ingrese todos los parámetros requeridos")
       return false;
     }
@@ -156,7 +157,7 @@ export default function Home() {
     setWarnings([]);
     if (validate()) {
       setLoading(true);
-      const { size, intervals } = await fetcher(`/api/rnd?modo=${params.modo}&n=${params.n}&aditiva=${params.aditiva}&multiplicativa=${params.multiplicativa}&modulo=${params.modulo}&semilla=${params.semilla}&intervalos=${params.cantIntervalos}`);
+      const { size, intervals } = await fetcher(`/api/rnd?modo=${params.modo}&n=${params.n}&aditiva=${params.aditiva}&multiplicativa=${params.multiplicativa}&modulo=${params.modulo}&semilla=${params.semilla}&intervalos=${params.cantIntervalos}&round=${round}`);
       setRowsCount(size);
       setIntervals(intervals);
       setLoading(false)
@@ -176,11 +177,9 @@ export default function Home() {
 
   const handleParamsChange = (key, value) => {
     let val = Number(value);
-    console.log(value, val)
-    if(key !== "modo" && (isNaN(val) || val < 0)) {
+    if (key !== "modo" && (isNaN(val) || val < 0)) {
       return;
     }
-    console.log(value, val)
     setParams(prev => ({ ...prev, [key]: value }))
   }
 
@@ -299,6 +298,11 @@ export default function Home() {
               {params.modo !== "nativo" && <InputField params={params} disabled={Boolean(params.g)} name="modulo" label="m" onChange={handleParamsChange} />}
               {params.modo === "lineal" && <InputField params={params} name="aditiva" label="c" onChange={handleParamsChange} />}
             </Grid>
+            <Grid item>
+              <FormGroup>
+                <FormControlLabel control={<Checkbox checked={round} onChange={(e) => setRound(e.target.checked)} />} label="Redondear decimales" />
+              </FormGroup>
+            </Grid>
           </Grid>
 
           <LoadingButton loading={loading} variant="contained" sx={{
@@ -375,7 +379,7 @@ export default function Home() {
                 }}
                 getRowId={(row) => row.interval}
                 getCellClassName={(cell) => {
-                  if(cell.field === "acu" && cell.row.i === chi.length - 1){
+                  if (cell.field === "acu" && cell.row.i === chi.length - 1) {
                     return 'chi-result';
                   }
                   return '';

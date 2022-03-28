@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 
 import Cors from 'cors'
+import { fix } from '../../utils';
 
 // Initializing the cors middleware
 const cors = Cors({
@@ -11,13 +12,6 @@ const response = {
   serie: [],
   intervals: []
 };
-
-Number.prototype.toFixedNoRound = function (precision = 1){
-  const factor = Math.pow(10, precision);
-  return Math.floor(this * factor) / factor;
-}
-
-const fix = (number, round) => round ? Number(number.toFixed(4)) : number.toFixedNoRound(4)
 
 // Helper method to wait for a middleware to execute before continuing
 // And to throw an error when an error happens in a middleware
@@ -42,7 +36,7 @@ const congruenciaLineal = ({
 }) => {
   const axic = (multiplicativa * semilla) + aditiva;
   const next = axic % modulo;
-  const rnd = next / modulo
+  const rnd = next / (modulo - 1)
   return {
     rnd,
     next,
@@ -57,7 +51,7 @@ const congruencialMultiplicativo = ({
 }) => {
   const axic = (multiplicativa * semilla);
   const next = axic % modulo;
-  const rnd = (next / modulo)
+  const rnd = next / (modulo - 1)
   return {
     rnd,
     next,
@@ -76,7 +70,7 @@ const MODOS = {
   nativo
 }
 
-const calcularIntervalos = (cant, round) => {
+const calcularIntervalos = (cant) => {
   const ancho = 1 / cant;
   response.intervals = [];
   for (let i = 0; i < cant; i++) {
@@ -90,24 +84,25 @@ const calcularIntervalos = (cant, round) => {
   }
 }
 
-const generar = ({ n, modo, multiplicativa, aditiva, modulo, semilla, intervalos = 5, round }) => {
+const generar = ({ n, modo, multiplicativa, aditiva, modulo, semilla, round }) => {
   let semillaInicial = Number(semilla);
+  const shouldRound = JSON.parse(round)
   for (let i = 1; i <= n; i++) {
     const { rnd, next, axic } = MODOS[modo]({
       semilla: semillaInicial,
       modulo: Number(modulo),
       multiplicativa: Number(multiplicativa),
       aditiva: Number(aditiva)
-      })
+    })
     response.serie.push({
       i,
       axic,
       next,
-      rnd: fix(rnd, round)
+      rnd: fix(rnd, shouldRound)
     })
     semillaInicial = next;
     response.intervals.forEach(interval => {
-      if(rnd >= interval.from && rnd < interval.to){
+      if (rnd >= interval.from && rnd < interval.to) {
         interval.items.push(rnd)
       }
     })
@@ -117,7 +112,7 @@ const generar = ({ n, modo, multiplicativa, aditiva, modulo, semilla, intervalos
 
 export default async function handler(req, res) {
   await runMiddleware(req, res, cors);
-  const { n, modo, page, size, multiplicativa, aditiva, modulo, semilla, intervalos = 5, round = true } = req.query;
+  const { n, modo, page, size, multiplicativa, aditiva, modulo, semilla, intervalos = 5, round } = req.query;
   if (!page && !size) {
     response.serie = [];
     calcularIntervalos(Number(intervalos), round);
