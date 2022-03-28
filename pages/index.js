@@ -14,7 +14,7 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import Alert from '@mui/material/Alert';
-import { coprime, isPrime } from '../utils';
+import { API_PATH, coprime, isPrime } from '../utils';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 ChartJS.register(
@@ -166,7 +166,7 @@ export default function Home() {
     setWarnings([]);
     if (validate()) {
       setLoading(true);
-      const { size, intervals } = await fetcher(`/api/rnd?modo=${params.modo}&n=${params.n}&aditiva=${params.aditiva}&multiplicativa=${params.multiplicativa}&modulo=${params.modulo}&semilla=${params.semilla}&intervalos=${params.cantIntervalos}&round=${round}`);
+      const { size, intervals } = await fetcher(`${API_PATH}/api/rnd?modo=${params.modo}&n=${params.n}&aditiva=${params.aditiva}&multiplicativa=${params.multiplicativa}&modulo=${params.modulo}&semilla=${params.semilla}&intervalos=${params.cantIntervalos}&round=${round}`);
       setRowsCount(size);
       setIntervals(intervals);
       setLoading(false)
@@ -179,7 +179,7 @@ export default function Home() {
 
   const getData = useCallback(async () => {
     setLoading(true);
-    const serie = await fetcher(`/api/rnd?page=${rowsState.page}&size=${rowsState.pageSize}`);
+    const serie = await fetcher(`${API_PATH}/api/rnd?page=${rowsState.page}&size=${rowsState.pageSize}`);
     setLoading(false);
     setData(serie);
   }, [rowsState])

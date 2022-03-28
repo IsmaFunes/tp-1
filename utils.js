@@ -45,3 +45,5 @@ export function coprime(a, b){
 export const fix = (number, round) => {
     return round ? Number(number.toFixed(4)) : number.toFixedNoRound(4)
 }
+
+export const API_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
