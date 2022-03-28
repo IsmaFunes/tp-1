@@ -3,8 +3,8 @@ const isProd = process.env.NODE_ENV === 'production'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  basePath: isProd ? '/tp-1' : '',
-  assetPrefix: isProd ? '/tp-1' : ''
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || ''
 }
 
 module.exports = nextConfig
