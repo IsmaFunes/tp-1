@@ -1,5 +1,5 @@
 import fetcher from '../fetcher'
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import { Checkbox, FormControl, FormControlLabel, FormGroup, Grid, InputLabel, MenuItem, Paper, Select, TextField, Typography } from '@mui/material';
 import { Box } from '@mui/system';
@@ -177,12 +177,12 @@ export default function Home() {
   const addError = (error) => setErrors(prev => [...prev, error])
   const addWarning = (warn) => setWarnings(prev => [...prev, warn])
 
-  const getData = async () => {
+  const getData = useCallback(async () => {
     setLoading(true);
     const serie = await fetcher(`/api/rnd?page=${rowsState.page}&size=${rowsState.pageSize}`);
     setLoading(false);
     setData(serie);
-  }
+  }, [rowsState])
 
   const handleParamsChange = (key, value) => {
     let val = Number(value);
@@ -204,7 +204,7 @@ export default function Home() {
     if (rowsCount) {
       getData();
     }
-  }, [rowsState, rowsCount])
+  }, [rowsState, rowsCount, getData])
 
   useEffect(() => {
     if (!intervals.length) {
@@ -230,7 +230,7 @@ export default function Home() {
       res.push(item);
     })
     setChi(res);
-  }, [intervals])
+  }, [intervals, params.n])
 
 
   return (
