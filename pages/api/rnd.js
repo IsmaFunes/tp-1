@@ -36,7 +36,7 @@ const congruenciaLineal = ({
 }) => {
   const axic = (multiplicativa * semilla) + aditiva;
   const next = axic % modulo;
-  const rnd = next / (modulo - 1)
+  const rnd = next / (modulo)
   return {
     rnd,
     next,
@@ -51,7 +51,7 @@ const congruencialMultiplicativo = ({
 }) => {
   const axic = (multiplicativa * semilla);
   const next = axic % modulo;
-  const rnd = next / (modulo - 1)
+  const rnd = next / (modulo)
   return {
     rnd,
     next,
