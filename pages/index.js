@@ -141,6 +141,11 @@ export default function Home() {
       addError("El número de muestra no puede ser superior a 1000000");
       return false;
     }
+
+    if(params.n < 30){
+      addWarning("Para calcular chi cuadrado, la muestra debe ser mayor a 30")
+    }
+
     if (params.modo === "lineal" && !coprime(Number(params.aditiva), Number(params.modulo))) {
       addWarning("El parámetro C tiene que ser relativamente primo con el módulo")
     }
@@ -210,10 +215,6 @@ export default function Home() {
     if (!intervals.length) {
       return;
     }
-    if (params.n < 30) {
-      addWarning("Para calcular chi cuadrado, la muestra debe ser mayor a 30")
-      return;
-    }
     const res = [];
     let acu = 0;
     intervals.forEach((interval, i) => {
@@ -230,7 +231,7 @@ export default function Home() {
       res.push(item);
     })
     setChi(res);
-  }, [intervals, params.n])
+  }, [intervals])
 
 
   return (
