@@ -47,3 +47,20 @@ export const fix = (number, round) => {
 }
 
 export const API_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
+
+export const calcularIntervalos = (cant, min = 0, max = 1) => {
+    const ancho = Number(((max - min) / cant).toFixed(4));
+    const intervals = []
+    for (let i = 0; i < cant; i++) {
+      let from = intervals[i - 1]?.to || min;
+      intervals.push({
+        from,
+        to: Number((from + ancho).toFixed(4)),
+        number: i + 1,
+        items: 0
+      })
+    }
+    return intervals;
+  }
+
+  export const random = () => fix(Math.random())
